@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { Product } from '../types';
 
 interface ProductCardProps {
@@ -24,7 +24,7 @@ const LinkIcon = () => (
 );
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-    const [imageError, setImageError] = React.useState(false);
+    const [imageError, setImageError] = useState(false);
     const buttonText = product.type === 'ticket' ? 'Book Now' : 'Buy Now';
 
     const formattedPrice = product.price

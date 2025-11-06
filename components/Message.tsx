@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { ChatMessage, MessageRole } from '../types';
 import { BotIcon, UserIcon } from '../constants';
 import SourceCard from './SourceCard';

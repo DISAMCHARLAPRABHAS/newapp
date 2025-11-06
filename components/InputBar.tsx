@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { SendIcon, MicrophoneIcon, PaperclipIcon, CameraIcon, DeleteIcon, PlusIcon } from '../constants';
+import React, { useState, useRef } from 'react';
+import { SendIcon, MicrophoneIcon, PaperclipIcon, CameraIcon, DeleteIcon, PlusIcon, playSound, clickSound, micOnSound, micOffSound, deleteSound } from '../constants';
 
 // For browser compatibility
 // Fix: Cast window to 'any' to access non-standard SpeechRecognition APIs.
@@ -12,17 +12,17 @@ interface InputBarProps {
 }
 
 const InputBar: React.FC<InputBarProps> = ({ onSearch, isLoading, onMakeViewClick }) => {
-    const [prompt, setPrompt] = React.useState('');
-    const [isListening, setIsListening] = React.useState(false);
-    const [attachedFile, setAttachedFile] = React.useState<{ name: string; data: string; mimeType: string; preview: string } | null>(null);
-    const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = React.useState(false);
+    const [prompt, setPrompt] = useState('');
+    const [isListening, setIsListening] = useState(false);
+    const [attachedFile, setAttachedFile] = useState<{ name: string; data: string; mimeType: string; preview: string } | null>(null);
+    const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
 
-    const recognitionRef = React.useRef<any>(null);
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-    const speechBaseTextRef = React.useRef<string>('');
+    const recognitionRef = useRef<any>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const speechBaseTextRef = useRef<string>('');
     
     // WORKAROUND: Use useState initializer for one-time setup to avoid useEffect.
-    React.useState(() => {
+    useState(() => {
         if (!SpeechRecognition) {
             console.warn("SpeechRecognition API not supported in this browser.");
             return;
@@ -53,9 +53,11 @@ const InputBar: React.FC<InputBarProps> = ({ onSearch, isLoading, onMakeViewClic
 
     const handleListen = () => {
         if (isListening) {
+            playSound(micOffSound);
             recognitionRef.current?.stop();
             setIsListening(false);
         } else {
+            playSound(micOnSound);
             speechBaseTextRef.current = prompt.trim();
             recognitionRef.current?.start();
             setIsListening(true);
@@ -82,13 +84,20 @@ const InputBar: React.FC<InputBarProps> = ({ onSearch, isLoading, onMakeViewClic
     };
     
     const handleVirtualTryOnClick = () => {
+        playSound(clickSound);
         onMakeViewClick();
         setIsAttachmentMenuOpen(false);
     }
     
     const handleUploadClick = () => {
+        playSound(clickSound);
         fileInputRef.current?.click();
         setIsAttachmentMenuOpen(false);
+    }
+    
+    const handleRemoveAttachment = () => {
+        playSound(deleteSound);
+        setAttachedFile(null);
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -108,7 +117,7 @@ const InputBar: React.FC<InputBarProps> = ({ onSearch, isLoading, onMakeViewClic
                         <img src={attachedFile.preview} alt="preview" className="w-12 h-12 rounded-md object-cover" />
                         <span className="text-sm text-gray-600 dark:text-gray-300 truncate">{attachedFile.name}</span>
                     </div>
-                    <button onClick={() => setAttachedFile(null)} className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600">
+                    <button onClick={handleRemoveAttachment} className="p-1.5 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600">
                         <DeleteIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     </button>
                 </div>
@@ -134,7 +143,7 @@ const InputBar: React.FC<InputBarProps> = ({ onSearch, isLoading, onMakeViewClic
                             </button>
                         </div>
                     )}
-                    <button type="button" onClick={() => setIsAttachmentMenuOpen(prev => !prev)} className={`text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 ${isAttachmentMenuOpen ? 'rotate-45 bg-gray-200 dark:bg-gray-700' : ''}`} aria-label="Attach file">
+                    <button type="button" onClick={() => { playSound(clickSound); setIsAttachmentMenuOpen(prev => !prev); }} className={`text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 ${isAttachmentMenuOpen ? 'rotate-45 bg-gray-200 dark:bg-gray-700' : ''}`} aria-label="Attach file">
                         <PlusIcon />
                     </button>
                  </div>

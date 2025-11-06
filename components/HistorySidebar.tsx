@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { Conversation } from '../types';
-import { NewChatIcon, DeleteIcon, XIcon } from '../constants';
+import { NewChatIcon, DeleteIcon, XIcon, playSound, clickSound } from '../constants';
 
 interface HistorySidebarProps {
     conversations: Conversation[];
@@ -18,6 +18,11 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ conversations, activeCo
         onDeleteChat(id);
     };
 
+    const handleClose = () => {
+        playSound(clickSound);
+        onClose();
+    }
+
     return (
         <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-lg text-gray-800 dark:text-gray-200 flex flex-col h-screen border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="p-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -29,7 +34,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({ conversations, activeCo
                     New Chat
                 </button>
                  <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors md:hidden"
                     aria-label="Close menu"
                 >

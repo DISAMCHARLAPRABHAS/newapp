@@ -1,21 +1,21 @@
-import * as React from 'react';
+import React, { useState, useRef } from 'react';
 import { editImageWithGemini } from '../services/geminiService';
-import { SendIcon } from '../constants';
+import { SendIcon, playSound, clickSound, cameraShutterSound, swooshSound, successSound, errorSound } from '../constants';
 
 interface VirtualTryOnModalProps {
     onClose: () => void;
 }
 
 const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
-    const [videoStream, setVideoStream] = React.useState<MediaStream | null>(null);
-    const [capturedImage, setCapturedImage] = React.useState<{ data: string; mime: string; url: string } | null>(null);
-    const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
-    const [prompt, setPrompt] = React.useState('');
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-    const videoRef = React.useRef<HTMLVideoElement>(null);
-    const canvasRef = React.useRef<HTMLCanvasElement>(null);
-    const hasStartedCamera = React.useRef(false);
+    const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
+    const [capturedImage, setCapturedImage] = useState<{ data: string; mime: string; url: string } | null>(null);
+    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [prompt, setPrompt] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const hasStartedCamera = useRef(false);
 
     const startCamera = async () => {
          if (!navigator.mediaDevices?.getUserMedia) {
@@ -52,6 +52,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
 
     const handleCapture = () => {
         if (videoRef.current && canvasRef.current) {
+            playSound(cameraShutterSound, 0.4);
             const video = videoRef.current;
             const canvas = canvasRef.current;
             
@@ -87,6 +88,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
     };
 
     const handleRetake = () => {
+        playSound(clickSound);
         setCapturedImage(null);
         setGeneratedImage(null);
         setError(null);
@@ -96,13 +98,16 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
 
     const handleGenerate = async () => {
         if (!capturedImage || !prompt.trim()) return;
+        playSound(swooshSound);
         setIsLoading(true);
         setGeneratedImage(null);
         setError(null);
         try {
             const result = await editImageWithGemini(capturedImage.data, capturedImage.mime, prompt);
             setGeneratedImage(`data:image/jpeg;base64,${result}`);
+            playSound(successSound);
         } catch (err) {
+            playSound(errorSound);
             setError(err instanceof Error ? err.message : "Failed to generate image.");
         } finally {
             setIsLoading(false);
@@ -111,6 +116,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
 
     // WORKAROUND: Explicitly handle cleanup on close since useEffect is unavailable.
     const handleClose = () => {
+        playSound(clickSound);
         videoStream?.getTracks().forEach(track => track.stop());
         onClose();
     };

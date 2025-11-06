@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useRef } from 'react';
 import { ChatMessage, MessageRole, Conversation, Theme } from '../types';
 import { searchWithGemini } from '../services/geminiService';
 import { getConversations, saveConversations } from '../services/storageService';
@@ -6,8 +6,7 @@ import InputBar from './InputBar';
 import Message from './Message';
 import HistorySidebar from './HistorySidebar';
 import VirtualTryOnModal from './VirtualTryOnModal';
-import { BotIcon, SunIcon, MoonIcon, MenuIcon } from '../constants';
-import { UserButton } from '@clerk/clerk-react';
+import { BotIcon, SunIcon, MoonIcon, MenuIcon, playSound, sendSound, receiveSound, errorSound, clickSound, deleteSound } from '../constants';
 
 interface ChatInterfaceProps {
     theme: Theme;
@@ -28,7 +27,7 @@ const createNewConversation = (): Conversation => {
 };
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => {
-    const [initialState] = React.useState(() => {
+    const [initialState] = useState(() => {
         const loaded = getConversations();
         if (loaded.length > 0) {
             return { conversations: loaded, activeId: loaded[0].id };
@@ -37,12 +36,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
         return { conversations: [newConvo], activeId: newConvo.id };
     });
 
-    const [conversations, setConversations] = React.useState<Conversation[]>(initialState.conversations);
-    const [activeConversationId, setActiveConversationId] = React.useState<string | null>(initialState.activeId);
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [isTryOnModalOpen, setIsTryOnModalOpen] = React.useState(false);
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
-    const messagesEndRef = React.useRef<HTMLDivElement>(null);
+    const [conversations, setConversations] = useState<Conversation[]>(initialState.conversations);
+    const [activeConversationId, setActiveConversationId] = useState<string | null>(initialState.activeId);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isTryOnModalOpen, setIsTryOnModalOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // WORKAROUND: Replaced useEffect for saving with logic in the render body
     // to avoid crashes in this React environment.
@@ -62,6 +61,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
     const messages = activeConversation ? activeConversation.messages : [];
 
     const handleNewChat = () => {
+        playSound(clickSound);
         const newConversation = createNewConversation();
         // Prepend to make it the first item
         setConversations(prev => [newConversation, ...prev]);
@@ -71,12 +71,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
     };
 
     const handleSelectChat = (id: string) => {
+        playSound(clickSound);
         setActiveConversationId(id);
         setIsSidebarOpen(false); // Close sidebar on chat selection
         scrollToBottom();
     };
 
     const handleDeleteChat = (id: string) => {
+        playSound(deleteSound);
         const remaining = conversations.filter(c => c.id !== id);
         
         if (remaining.length === 0) {
@@ -95,7 +97,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
 
     const handleSearch = async (prompt: string, file?: { data: string; mimeType: string }) => {
         if (!activeConversationId) return;
-
+        playSound(sendSound);
         setIsLoading(true);
         // If there's a file, the content is a placeholder or can be adapted.
         const displayContent = file ? `${prompt || 'Image attached'}` : prompt;
@@ -127,12 +129,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                 products: result.products,
                 suggestions: result.suggestions,
             };
+            playSound(receiveSound);
             setConversations(prev => prev.map(convo => 
                 convo.id === activeConversationId 
                     ? { ...convo, messages: [...convo.messages, modelMessage] }
                     : convo
             ));
         } catch (error) {
+            playSound(errorSound);
             const errorMessage: ChatMessage = {
                 id: `error-${Date.now()}`,
                 role: MessageRole.ERROR,
@@ -148,13 +152,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
             scrollToBottom();
         }
     };
+    
+    const handleThemeToggle = () => {
+        playSound(clickSound);
+        toggleTheme();
+    }
 
     return (
         <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-20 md:hidden"
-                    onClick={() => setIsSidebarOpen(false)}
+                    onClick={() => { playSound(clickSound); setIsSidebarOpen(false); }}
                     aria-hidden="true"
                 />
             )}
@@ -172,7 +181,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                     <div className="max-w-4xl mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => setIsSidebarOpen(true)}
+                                onClick={() => { playSound(clickSound); setIsSidebarOpen(true); }}
                                 className="p-2 -ml-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors md:hidden"
                                 aria-label="Open chat history"
                             >
@@ -182,9 +191,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Synapse</h1>
                         </div>
                         <div className="flex items-center gap-4">
-                            <UserButton afterSignOutUrl="/" />
                             <button
-                                onClick={toggleTheme}
+                                onClick={handleThemeToggle}
                                 className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                                 aria-label="Toggle theme"
                             >
