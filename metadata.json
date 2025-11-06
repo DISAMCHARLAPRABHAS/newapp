@@ -1,0 +1,8 @@
+{
+  "name": "Synapse",
+  "description": "An AI-powered search interface to find and book live tickets and products. Synapse provides up-to-date information using Google Search grounding.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
