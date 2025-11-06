@@ -8,9 +8,7 @@ function App() {
   );
 
   // WORKAROUND: The useEffect for theme management was causing a crash.
-  // The logic is moved here to run on every render. This is a side effect
-  // in the render phase, which is generally discouraged, but it is necessary
-  // to avoid the 'useEffect' related error in this environment.
+  // The logic is moved here to run on every render.
   const root = window.document.documentElement;
   if (theme === 'dark') {
     if (!root.classList.contains('dark')) {
@@ -22,12 +20,11 @@ function App() {
     }
   }
   localStorage.setItem('theme', theme);
-
+  
   const toggleTheme = useCallback(() => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   }, []);
 
-  // Render ChatInterface directly to avoid Clerk components.
   return (
     <ChatInterface theme={theme} toggleTheme={toggleTheme} />
   );

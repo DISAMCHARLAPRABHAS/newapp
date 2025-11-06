@@ -86,6 +86,24 @@ export const XIcon: React.FC = () => (
     </svg>
 );
 
+export const ChevronDownIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-5 w-5"} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+);
+
+export const ThumbUpIcon: React.FC<{className?: string, solid?: boolean}> = ({className, solid}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-4 w-4"} fill={solid ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6v-.75c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5" />
+    </svg>
+);
+
+export const ThumbDownIcon: React.FC<{className?: string, solid?: boolean}> = ({className, solid}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-4 w-4"} fill={solid ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 16.5V18c0 1.135.845 2.098 1.976 2.192.373.03.748.057 1.123.08M15.75 6H18a2.25 2.25 0 012.25 2.25v11.25c0 1.135-.845 2.098-1.976 2.192a48.424 48.424 0 01-1.123.08M15.75 5.25v1.875a3.375 3.375 0 01-3.375 3.375h-1.5a1.125 1.125 0 00-1.125 1.125v1.5A3.375 3.375 0 016.375 16.5H5.25m11.9 3.664A2.251 2.251 0 0115 21.75h-1.5a2.251 2.251 0 01-2.15-1.586m5.8 0c.065-.21.1-.433.1-.664v-.75h-6v.75c0 .231.035.454.1.664M6.75 16.5H4.875c-.621 0-1.125-.504-1.125-1.125V3.75c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125-1.125V8.25" />
+    </svg>
+);
+
 // Sound Effects (Base64 encoded)
 // Using a short, silent WAV file as a placeholder to fix syntax and missing constant errors.
 export const clickSound = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';

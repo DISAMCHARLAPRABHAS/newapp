@@ -16,6 +16,7 @@ export interface Product {
   price?: string;
   imageUrl?: string;
   sourceUrl?: string;
+  reviewSummary?: string;
 }
 
 export interface ChatMessage {
@@ -25,6 +26,7 @@ export interface ChatMessage {
   sources?: GroundingChunk[];
   products?: Product[];
   suggestions?: string[];
+  feedback?: 'like' | 'dislike';
 }
 
 export interface Conversation {

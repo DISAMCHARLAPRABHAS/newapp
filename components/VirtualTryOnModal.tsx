@@ -129,7 +129,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
         if (capturedImage) {
             return (
                 <div className="p-4 flex flex-col items-center gap-4">
-                    <div className="relative w-full max-w-md aspect-auto rounded-lg overflow-hidden border-2 border-gray-300 dark:border-gray-600">
+                    <div className="relative w-full max-w-md aspect-auto rounded-xl overflow-hidden border-2 border-gray-300 dark:border-gray-600">
                          {generatedImage ? <img src={generatedImage} alt="Generated result" className="w-full h-full object-contain" /> : <img src={capturedImage.url} alt="Captured" className="w-full h-full object-contain" />}
                          {isLoading && (
                             <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
@@ -159,7 +159,7 @@ const VirtualTryOnModal: React.FC<VirtualTryOnModalProps> = ({ onClose }) => {
 
         return (
             <div className="p-4 flex flex-col items-center gap-4">
-                 <video ref={videoRef} autoPlay playsInline muted className="w-full max-w-md rounded-lg border-2 border-gray-300 dark:border-gray-600"></video>
+                 <video ref={videoRef} autoPlay playsInline muted className="w-full max-w-md rounded-xl border-2 border-gray-300 dark:border-gray-600"></video>
                  <button onClick={handleCapture} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-colors">Capture Photo</button>
             </div>
         )
