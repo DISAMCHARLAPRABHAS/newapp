@@ -37,3 +37,11 @@ export interface Conversation {
 
 // Fix: Exporting GroundingChunk type so other modules can import it from this file.
 export type { GroundingChunk };
+
+export interface Feedback {
+  id: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string; // ISO
+  path?: string; // optional: which screen/route the feedback is for
+}

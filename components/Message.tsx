@@ -56,7 +56,9 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
 
     return (
         <div className={wrapperClasses}>
-            {!isUser && <BotIcon />}
+            {!isUser && (
+                <img src="/logo.svg" alt="Synapse logo" className="w-8 h-8 rounded-full flex-shrink-0" />
+            )}
             <div className={contentWrapperClasses}>
                 <div className={messageBubbleClasses}>
                     <div className="prose dark:prose-invert prose-sm leading-relaxed" dangerouslySetInnerHTML={parseMarkdown(message.content)} />
