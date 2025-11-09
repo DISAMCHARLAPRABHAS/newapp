@@ -6,8 +6,6 @@ import InputBar from './InputBar';
 import Message from './Message';
 import HistorySidebar from './HistorySidebar';
 import VirtualTryOnModal from './VirtualTryOnModal';
-import Login from './Login';
-import FeedbackModal from './FeedbackModal';
 import { BotIcon, SunIcon, MoonIcon, MenuIcon, playSound, sendSound, receiveSound, errorSound, clickSound, deleteSound } from '../constants';
 
 interface ChatInterfaceProps {
@@ -35,7 +33,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
     const [isHistoryLoading, setIsHistoryLoading] = useState(true);
     const [isTryOnModalOpen, setIsTryOnModalOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const hasFetchedConversations = useRef(false);
 
@@ -206,16 +203,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                     aria-hidden="true"
                 />
             )}
-            {/* Floating open button for small screens when sidebar is closed */}
-            {!isSidebarOpen && (
-                <button
-                    onClick={() => { playSound(clickSound); setIsSidebarOpen(true); }}
-                    className="fixed left-3 top-1/2 transform -translate-y-1/2 z-40 p-2 rounded-full bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 shadow-md md:hidden"
-                    aria-label="Open chat history"
-                >
-                    <MenuIcon />
-                </button>
-            )}
             <HistorySidebar 
                 conversations={conversations}
                 activeConversationId={activeConversationId}
@@ -237,7 +224,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                             >
                                 <MenuIcon />
                             </button>
-                            <img src="/logo1.svg" alt="Synapse logo" className="w-8 h-8 rounded-full" />
+                            <BotIcon />
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Synapse</h1>
                         </div>
                         <div className="flex items-center gap-2">
@@ -248,14 +235,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                             >
                                 {theme === 'light' ? <MoonIcon /> : <SunIcon />}
                             </button>
-                            <button
-                                onClick={() => setIsFeedbackOpen(true)}
-                                className="px-3 py-1 text-sm rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-200"
-                                aria-label="Send feedback"
-                            >
-                                Feedback
-                            </button>
-                            <Login />
                         </div>
                     </div>
                 </header>
@@ -287,7 +266,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                 </footer>
             </div>
             {isTryOnModalOpen && <VirtualTryOnModal onClose={() => setIsTryOnModalOpen(false)} />}
-            {isFeedbackOpen && <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />}
         </div>
     );
 };
