@@ -3,7 +3,9 @@ import { ChatMessage, MessageRole } from '../types';
 import { BotIcon, UserIcon, ChevronDownIcon, ThumbUpIcon, ThumbDownIcon, playSound, clickSound } from '../constants';
 import SourceCard from './SourceCard';
 import ProductCard from './ProductCard';
+import ComparisonTable from './ComparisonTable'; // --- NEW IMPORT ---
 
+// ... (parseMarkdown and escapeHtml functions are unchanged) ...
 const parseMarkdown = (text: string): { __html: string } => {
     if (!text || typeof text !== 'string') {
         return { __html: '' };
@@ -15,17 +17,12 @@ const parseMarkdown = (text: string): { __html: string } => {
     }
 
     try {
-        // Simple and robust markdown parser
-        // Strategy: Replace markdown patterns with placeholders, escape HTML, then restore placeholders
-        
         let result = text;
         const replacements: Array<{ placeholder: string; replacement: string }> = [];
         let placeholderIndex = 0;
         
-        // Generate a unique placeholder that won't appear in the text
         const getPlaceholder = () => `\u0001PLACEHOLDER_${placeholderIndex++}\u0001`;
         
-        // Process code blocks first (backticks)
         result = result.replace(/`([^`]+?)`/g, (match, content) => {
             const placeholder = getPlaceholder();
             const escapedContent = escapeHtml(content);
@@ -34,7 +31,6 @@ const parseMarkdown = (text: string): { __html: string } => {
             return placeholder;
         });
         
-        // Process bold text (double asterisks) - won't match inside code placeholders
         result = result.replace(/\*\*([^*]+?)\*\*/g, (match, content) => {
             const placeholder = getPlaceholder();
             const escapedContent = escapeHtml(content);
@@ -42,26 +38,21 @@ const parseMarkdown = (text: string): { __html: string } => {
             return placeholder;
         });
         
-        // Escape all HTML in the remaining text
         result = escapeHtml(result);
         
-        // Restore formatted replacements (in reverse order to handle nested cases)
         for (let i = replacements.length - 1; i >= 0; i--) {
             const { placeholder, replacement } = replacements[i];
             result = result.replace(placeholder, replacement);
         }
         
-        // Convert line breaks to <br /> (do this last)
         result = result.replace(/\n/g, '<br />');
         
-        // Ensure we have content
         if (!result || result.trim() === '') {
             result = escapeHtml(text).replace(/\n/g, '<br />');
         }
 
         return { __html: result };
     } catch (error) {
-        // Fallback: just escape and convert line breaks
         console.error('Error parsing markdown:', error);
         const fallback = escapeHtml(text).replace(/\n/g, '<br />');
         return { __html: fallback || text };
@@ -76,6 +67,7 @@ const escapeHtml = (text: string): string => {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 };
+
 
 interface MessageProps {
     message: ChatMessage;
@@ -94,7 +86,6 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
     const isUser = message.role === MessageRole.USER;
     const isError = message.role === MessageRole.ERROR;
     
-    // Ensure content is always a string
     const messageContent = message.content || '';
     const hasContent = messageContent.trim().length > 0;
 
@@ -106,14 +97,12 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
         'bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded-bl-none'
     }`;
     
-    // Explicit text color styles as fallback (in case Tailwind classes don't apply)
-    // Check for dark mode by checking if dark class exists on html element
     const isDarkMode = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
     const textColorStyle = isUser 
         ? { color: '#ffffff' } 
         : isError 
-        ? { color: isDarkMode ? '#fca5a5' : '#dc2626' } // red-300 for dark, red-600 for light
-        : { color: isDarkMode ? '#e5e7eb' : '#1f2937' }; // gray-200 for dark, gray-800 for light
+        ? { color: isDarkMode ? '#fca5a5' : '#dc2626' } 
+        : { color: isDarkMode ? '#e5e7eb' : '#1f2937' }; 
     
     const toggleSources = () => {
         playSound(clickSound, 0.7);
@@ -160,6 +149,12 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
                 </div>
 
                 <div className="mt-3 w-full max-w-md md:max-w-lg lg:max-w-2xl space-y-3">
+                    
+                    {/* --- NEW COMPONENT RENDER --- */}
+                    {isModel && message.comparison_table && message.comparison_table.length > 0 && (
+                        <ComparisonTable tableData={message.comparison_table} />
+                    )}
+
                     {isModel && message.products && message.products.length > 0 && (
                         <div className="grid grid-cols-1 gap-3">
                             {message.products.map((product, index) => (

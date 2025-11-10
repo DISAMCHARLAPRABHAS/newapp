@@ -1,83 +1,51 @@
-// Fix: Created the geminiService.ts file with implementations for searchWithGemini and editImageWithGemini.
-import { GoogleGenAI, Modality, Part } from "@google/genai";
-import { Product, GroundingChunk } from '../types';
+// --- NEW: Import ChatMessage type ---
+import { Product, GroundingChunk, ComparisonItem, ChatMessage } from '../types';
 
-// Per guidelines:
-const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-
-const systemInstruction = `You are Synapse, a friendly and helpful AI assistant specializing in finding tickets and products.
-Your goal is to provide accurate information and a seamless shopping experience.
-1.  Always use Google Search to find the most up-to-date information.
-2.  Your main response should be a helpful, conversational text answer to the user's query.
-3.  After the main text response, you MUST include a JSON object enclosed in a \`\`\`json ... \`\`\` block. This JSON object should not be part of your conversational response, but provided at the end.
-4.  The JSON object MUST have the following structure: { "products": [...], "suggestions": [...] }.
-    - "products": An array of product objects. Each object should have: "name" (string), "type" ('ticket' or 'product'), "url" (string, direct link), "price" (string, optional), "imageUrl" (string, optional), "sourceUrl" (string, optional, from search results), "reviewSummary" (string, optional, a concise summary of user reviews). Populate this with relevant items. If no products are found, provide an empty array [].
-    - "suggestions": An array of 3-4 short, relevant follow-up questions the user might ask. If no suggestions are relevant, provide an empty array [].
-5.  If the user provides an an image, use it as the primary context for the search.
-6.  Always be friendly and engaging in your main text response.
-`;
+// The URL of your new Python backend
+const API_BASE_URL = 'http://localhost:5000';
 
 interface SearchResult {
     text: string;
     sources?: GroundingChunk[];
     products?: Product[];
     suggestions?: string[];
+    comparison_table?: ComparisonItem[];
 }
 
 export const searchWithGemini = async (
     prompt: string,
-    file?: { data: string; mimeType: string }
+    file: { data: string; mimeType: string } | undefined,
+    // --- NEW: Accept the conversation history ---
+    history: ChatMessage[] 
 ): Promise<SearchResult> => {
     
-    const parts: Part[] = [];
-    if (file) {
-        parts.push({
-            inlineData: {
-                mimeType: file.mimeType,
-                data: file.data,
-            },
-        });
-    }
-    // Ensure prompt is not empty if a file is provided.
-    parts.push({ text: prompt || "Describe this image and find relevant products or tickets." });
-
-    const contents = { parts };
-    
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: contents,
-        config: {
-            systemInstruction: systemInstruction,
-            tools: [{ googleSearch: {} }],
+    const response = await fetch(`${API_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         },
+        // --- NEW: Send prompt, file, and history ---
+        body: JSON.stringify({
+            prompt: prompt,
+            file: file,
+            history: history 
+        }),
     });
 
-    const responseText = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
-    let products: Product[] = [];
-    let suggestions: string[] = [];
-    let conversationalText = responseText;
-
-    const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
-    const match = responseText.match(jsonRegex);
-
-    if (match && match[1]) {
-        try {
-            const parsedJson = JSON.parse(match[1]);
-            products = parsedJson.products || [];
-            suggestions = parsedJson.suggestions || [];
-            conversationalText = responseText.replace(jsonRegex, '').trim();
-        } catch (e) {
-            console.error("Failed to parse JSON from model response:", e);
-        }
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to fetch from backend.");
     }
 
+    const data = await response.json();
+    
+    // The backend returns data in the exact format our app expects
     return {
-        text: conversationalText,
-        sources,
-        products,
-        suggestions,
+        text: data.text,
+        sources: data.sources || [],
+        products: data.products || [],
+        suggestions: data.suggestions || [],
+        comparison_table: data.comparison_table || []
     };
 };
 
@@ -86,30 +54,29 @@ export const editImageWithGemini = async (
     mimeType: string,
     prompt: string
 ): Promise<string> => {
-    const imagePart: Part = {
-        inlineData: {
-            data: imageData,
-            mimeType: mimeType,
+    // This function is unchanged
+    const response = await fetch(`${API_BASE_URL}/api/edit-image`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         },
-    };
-    const textPart: Part = { text: prompt };
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [imagePart, textPart] },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
+        body: JSON.stringify({
+            imageData,
+            mimeType,
+            prompt
+        }),
     });
 
-    const firstCandidate = response.candidates?.[0];
-    if (firstCandidate) {
-        for (const part of firstCandidate.content.parts) {
-            if (part.inlineData) {
-                return part.inlineData.data;
-            }
-        }
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to generate image.");
     }
+
+    const data = await response.json();
     
-    throw new Error("No image was generated. Please try a different prompt.");
+    if (!data.imageData) {
+        throw new Error("No image data received from backend.");
+    }
+
+    return data.imageData;
 };

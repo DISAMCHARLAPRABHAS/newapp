@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { ChatMessage, MessageRole, Conversation, Theme } from '../types';
+// --- NEW: Import ComparisonItem type ---
+import { ChatMessage, MessageRole, Conversation, Theme, ComparisonItem } from '../types';
 import { searchWithGemini } from '../services/geminiService';
 import { getConversations, saveConversations } from '../services/storageService';
 import InputBar from './InputBar';
@@ -13,6 +14,7 @@ interface ChatInterfaceProps {
     toggleTheme: () => void;
 }
 
+// ... (createNewConversation function is unchanged) ...
 const createNewConversation = (): Conversation => {
     const newId = `convo-${Date.now()}`;
     return {
@@ -26,6 +28,7 @@ const createNewConversation = (): Conversation => {
     };
 };
 
+
 const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
@@ -36,6 +39,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const hasFetchedConversations = useRef(false);
 
+    // ... (rest of the setup, handleNewChat, etc. is unchanged) ...
     // WORKAROUND: Use ref and logic in render body to fetch data once, avoiding useEffect.
     if (!hasFetchedConversations.current) {
         const loadedConversations = getConversations();
@@ -110,10 +114,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
             content: displayContent,
         };
         
+        // --- NEW: Get the history *before* adding the new message ---
+        // We filter out the 'init' message as it's not real history.
+        const currentHistory = activeConversation
+            ? activeConversation.messages.filter(msg => msg.id !== 'init')
+            : [];
+
         const currentConvo = conversations.find(c => c.id === activeConversationId);
         const isFirstMessage = currentConvo ? currentConvo.messages.length === 1 && currentConvo.messages[0].id === 'init' : false;
         
-        // Optimistically update UI
+        // Optimistically update UI (Unchanged)
         let updatedConversations = conversations.map(convo => {
             if (convo.id === activeConversationId) {
                 return {
@@ -128,7 +138,9 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
         scrollToBottom();
 
         try {
-            const result = await searchWithGemini(prompt, file);
+            // --- NEW: Pass the 'currentHistory' to the service ---
+            const result = await searchWithGemini(prompt, file, currentHistory);
+            
             const modelMessage: ChatMessage = {
                 id: `model-${Date.now()}`,
                 role: MessageRole.MODEL,
@@ -136,6 +148,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                 sources: result.sources,
                 products: result.products,
                 suggestions: result.suggestions,
+                comparison_table: result.comparison_table // Pass table to message
             };
             playSound(receiveSound);
             
@@ -167,6 +180,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
         }
     };
     
+    // ... (rest of the component, handleThemeToggle, handleFeedback, and JSX is unchanged) ...
     const handleThemeToggle = () => {
         playSound(clickSound);
         toggleTheme();

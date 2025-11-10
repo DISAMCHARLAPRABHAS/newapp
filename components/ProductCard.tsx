@@ -5,6 +5,7 @@ interface ProductCardProps {
     product: Product;
 }
 
+// Icons (unchanged)
 const TicketIcon: React.FC<{ className?: string }> = ({ className = "h-6 w-6" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={`${className} text-gray-500 dark:text-gray-400`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
@@ -39,7 +40,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             : `₹${product.price.replace('$', '').trim()}`
         : null;
 
-    const showImage = product.imageUrl && !imageError;
+    // This check is now only used for the image tag itself
+    const showImage = product.imageUrl && !imageError && product.type === 'product';
 
     let sourceHostname = '';
     if (product.sourceUrl) {
@@ -52,20 +54,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl transition-shadow duration-200 shadow-sm hover:shadow-md overflow-hidden flex flex-col">
-            <div className="relative w-full aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                {showImage ? (
-                    <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={() => setImageError(true)}
-                    />
-                ) : (
-                    product.type === 'ticket' 
-                        ? <TicketIcon className="h-12 w-12" /> 
-                        : <ProductIcon className="h-12 w-12" />
-                )}
-            </div>
+            
+            {/* --- THIS IS THE FIX --- */}
+            {/* This entire block is now conditional. It only renders if the type is 'product'. */}
+            {product.type === 'product' && (
+                <div className="relative w-full aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                    {showImage ? (
+                        <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={() => setImageError(true)}
+                        />
+                    ) : (
+                        <ProductIcon className="h-10 w-10" />
+                    )}
+                </div>
+            )}
+            {/* End of the conditional block */}
 
             <div className="p-4 flex flex-col flex-1">
                 <div className="flex-1 space-y-2">

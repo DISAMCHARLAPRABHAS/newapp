@@ -19,6 +19,17 @@ export interface Product {
   reviewSummary?: string;
 }
 
+// --- NEW INTERFACE ---
+export interface ComparisonItem {
+  name: string;
+  original_price?: string;
+  discounted_price?: string;
+  offers?: string;
+  rating_out_of_5?: string;
+  review_summary?: string;
+  url: string;
+}
+
 export interface ChatMessage {
   id: string;
   role: MessageRole;
@@ -27,6 +38,7 @@ export interface ChatMessage {
   products?: Product[];
   suggestions?: string[];
   feedback?: 'like' | 'dislike';
+  comparison_table?: ComparisonItem[]; // --- NEW FIELD ---
 }
 
 export interface Conversation {
