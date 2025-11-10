@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChatMessage, MessageRole } from '../types';
-import { BotIcon, UserIcon, ChevronDownIcon, ThumbUpIcon, ThumbDownIcon, playSound, clickSound } from '../constants';
+// --- BotIcon import is removed ---
+import { UserIcon, ChevronDownIcon, ThumbUpIcon, ThumbDownIcon, playSound, clickSound } from '../constants';
 import SourceCard from './SourceCard';
 import ProductCard from './ProductCard';
 import ComparisonTable from './ComparisonTable'; // --- NEW IMPORT ---
@@ -110,13 +111,19 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
     };
 
     const handleFeedbackClick = (feedbackType: 'like' | 'dislike') => {
+        if (!message.id) return; // Don't allow feedback on messages without IDs
         playSound(clickSound, 0.6);
         onFeedback(message.id, feedbackType);
     };
 
     return (
         <div className={wrapperClasses}>
-            {!isUser && <BotIcon />}
+            
+            {/* --- THIS IS THE CHANGE --- */}
+            {!isUser && (
+                <img src="/logo1.svg" alt="Synapse Logo" className="w-8 h-8 flex-shrink-0" />
+            )}
+            
             <div className={contentWrapperClasses}>
                 <div 
                     className={messageBubbleClasses} 
@@ -200,7 +207,7 @@ const Message: React.FC<MessageProps> = ({ message, onSuggestionClick, onFeedbac
                         </div>
                     )}
 
-                    {isModel && (
+                    {isModel && message.id !== 'init' && ( // Don't show feedback for the initial welcome message
                         <div className="flex items-center gap-2 pt-1">
                             <button 
                                 onClick={() => handleFeedbackClick('like')}

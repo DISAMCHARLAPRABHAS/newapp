@@ -7,7 +7,8 @@ import InputBar from './InputBar';
 import Message from './Message';
 import HistorySidebar from './HistorySidebar';
 import VirtualTryOnModal from './VirtualTryOnModal';
-import { BotIcon, SunIcon, MoonIcon, MenuIcon, playSound, sendSound, receiveSound, errorSound, clickSound, deleteSound } from '../constants';
+// --- BotIcon removed ---
+import { SunIcon, MoonIcon, MenuIcon, playSound, sendSound, receiveSound, errorSound, clickSound, deleteSound } from '../constants';
 
 interface ChatInterfaceProps {
     theme: Theme;
@@ -112,6 +113,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
             id: `user-${Date.now()}`,
             role: MessageRole.USER,
             content: displayContent,
+            timestamp: new Date().toISOString(), // Add timestamp for consistency
         };
         
         // --- NEW: Get the history *before* adding the new message ---
@@ -148,7 +150,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                 sources: result.sources,
                 products: result.products,
                 suggestions: result.suggestions,
-                comparison_table: result.comparison_table // Pass table to message
+                comparison_table: result.comparison_table, // Pass table to message
+                timestamp: new Date().toISOString(), // Add timestamp for consistency
             };
             playSound(receiveSound);
             
@@ -165,6 +168,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                 id: `error-${Date.now()}`,
                 role: MessageRole.ERROR,
                 content: error instanceof Error ? error.message : "An unknown error occurred.",
+                timestamp: new Date().toISOString(), // Add timestamp for consistency
             };
             
             updatedConversations = updatedConversations.map(convo =>
@@ -238,7 +242,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                             >
                                 <MenuIcon />
                             </button>
-                            <BotIcon />
+                            
+                            {/* --- THIS IS THE CHANGE --- */}
+                            <img src="/logo1.svg" alt="Synapse Logo" className="w-8 h-8" />
+                            
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Synapse</h1>
                         </div>
                         <div className="flex items-center gap-2">
@@ -260,7 +267,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ theme, toggleTheme }) => 
                         ))}
                         {isLoading && (
                             <div className="flex items-start gap-3 my-4 animate-fade-in-up">
-                                <BotIcon />
+                                
+                                {/* --- THIS IS THE CHANGE --- */}
+                                <img src="/logo1.svg" alt="Synapse Logo" className="w-8 h-8 flex-shrink-0" />
+
                                 <div className="max-w-md md:max-w-lg lg:max-w-2xl px-4 py-3 rounded-2xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-bl-none flex items-center gap-2 shadow-md">
                                     <div className="animate-pulse flex space-x-1">
                                         <div className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full"></div>
