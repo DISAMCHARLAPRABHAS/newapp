@@ -18,6 +18,12 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      css: {
+        postcss: {
+          // Use the local postcss.config.js, or disable if not needed
+          // Since we're using Tailwind via CDN, we don't need PostCSS processing
+        }
       }
     };
 });
